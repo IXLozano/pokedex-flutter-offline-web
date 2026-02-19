@@ -4,7 +4,7 @@ class PokemonDetail extends Equatable {
   final int id;
   final String name;
   final String imageUrl;
-  final int heigh;
+  final int height;
   final int weight;
   final List<String> types;
 
@@ -12,11 +12,11 @@ class PokemonDetail extends Equatable {
     required this.id,
     required this.name,
     required this.imageUrl,
-    required this.heigh,
+    required this.height,
     required this.weight,
     required this.types,
   });
 
   @override
-  List<Object?> get props => [id, name, imageUrl, heigh, weight, types];
+  List<Object?> get props => [id, name, imageUrl, height, weight, types];
 }
