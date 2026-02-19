@@ -12,15 +12,20 @@ class PokemonRepositoriesImpl implements PokemonRepository {
   PokemonRepositoriesImpl({required PokemonRemoteDataSource source}) : _source = source;
 
   @override
-  Future<List<Pokemon>> getPokemonPage({int limit = 20, int offset = 0}) => _execute(
-    () async => await _source
+  Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) => //
+  _execute(
+    () => _source
         .getPokemonPage(limit: limit, offset: offset)
         .then((response) => response.results.map((e) => e.toEntity()).toList()),
   );
 
   @override
-  Future<PokemonDetail> getPokemonDetail(int id) =>
-      _execute(() async => await _source.getPokemonDetail(id).then((response) => response.toEntity()));
+  Future<PokemonDetail> getPokemonDetail(int id) => //
+  _execute(
+    () => _source
+        .getPokemonDetail(id) //
+        .then((response) => response.toEntity()),
+  );
 
   Future<T> _execute<T>(Future<T> Function() action) async {
     try {
