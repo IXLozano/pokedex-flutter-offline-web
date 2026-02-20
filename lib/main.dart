@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/core/di/app_injection.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_detail/pokemon_detail_cubit.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_list/pokemon_list_cubit.dart';
-import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokemon_list_screen.dart';
+import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokedex_shell_screen.dart';
 
 void main() => runApp(PokedexApp(injection: AppInjection()));
 
@@ -19,7 +19,7 @@ class PokedexApp extends StatelessWidget {
         BlocProvider<PokemonListCubit>.value(value: injection.pokedexModule.pokemonListCubit),
         BlocProvider<PokemonDetailCubit>.value(value: injection.pokedexModule.pokemonDetailCubit),
       ],
-      child: MaterialApp(debugShowCheckedModeBanner: false, home: PokemonListScreen()),
+      child: MaterialApp(debugShowCheckedModeBanner: false, home: PokedexShellScreen()),
     );
   }
 }
