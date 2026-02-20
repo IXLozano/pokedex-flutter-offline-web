@@ -17,7 +17,7 @@ class PokemonListCubit extends Cubit<PokemonListState> {
   Future<void> fetchInitial() {
     return _execute(() async {
       emit(PokemonListLoading());
-
+      await Future.delayed(const Duration(seconds: 2));
       final pokemons = await getPokemonPage(limit: _limit, offset: 0);
 
       _offset = _limit;
@@ -36,12 +36,19 @@ class PokemonListCubit extends Cubit<PokemonListState> {
 
       _isFetching = true;
 
+      emit(currentState.copyWith(isRefreshing: true));
+
       try {
+        await Future.delayed(const Duration(seconds: 0));
+
         final newPokemons = await getPokemonPage(limit: _limit, offset: _offset);
 
         _offset += _limit;
 
-        emit(PokemonListData(pokemons: [...currentState.pokemons, ...newPokemons]));
+        emit(PokemonListData(pokemons: [...currentState.pokemons, ...newPokemons], isRefreshing: false));
+      } catch (_) {
+        emit(currentState.copyWith(isRefreshing: false));
+        rethrow;
       } finally {
         _isFetching = false;
       }
