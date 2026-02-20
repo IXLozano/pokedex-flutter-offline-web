@@ -6,10 +6,10 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pok
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon_detail.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/repositories/pokemon_repository.dart';
 
-class PokemonRepositoriesImpl implements PokemonRepository {
+class PokemonRepositoryImpl implements PokemonRepository {
   final PokemonRemoteDataSource _source;
 
-  PokemonRepositoriesImpl({required PokemonRemoteDataSource source}) : _source = source;
+  PokemonRepositoryImpl({required PokemonRemoteDataSource source}) : _source = source;
 
   @override
   Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) => //
