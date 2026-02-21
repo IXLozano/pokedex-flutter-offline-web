@@ -8,7 +8,6 @@ part 'pokemon_list_state.dart';
 class PokemonListCubit extends Cubit<PokemonListState> {
   final GetPokemonPage getPokemonPage;
 
-  int _offset = 0;
   final int _limit = 20;
   bool _isFetching = false;
 
@@ -18,18 +17,13 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     return _execute(() async {
       emit(PokemonListLoading());
 
-      _offset = 0;
       _isFetching = false;
 
       await Future.delayed(const Duration(seconds: 2));
-      List<Pokemon> latestPokemons = const [];
 
-      await for (final pokemons in getPokemonPage(limit: _limit, offset: _offset)) {
-        latestPokemons = pokemons;
+      await for (final pokemons in getPokemonPage(limit: _limit, offset: 0)) {
         emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
       }
-
-      _offset = latestPokemons.length;
     });
   }
 
@@ -48,14 +42,15 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       List<Pokemon> accumulated = currentState.pokemons;
       bool hasReachedMax = currentState.hasReachedMax;
 
+      final offset = currentState.pokemons.length;
+
       try {
-        await for (final newPokemons in getPokemonPage(limit: _limit, offset: _offset)) {
+        await for (final newPokemons in getPokemonPage(limit: _limit, offset: offset)) {
           accumulated = [...accumulated, ...newPokemons];
           hasReachedMax = newPokemons.length < _limit;
 
           emit(PokemonListData(pokemons: accumulated, isRefreshing: true, hasReachedMax: hasReachedMax));
         }
-        _offset += accumulated.length;
 
         emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
       } catch (_) {
