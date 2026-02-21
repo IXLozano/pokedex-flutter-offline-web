@@ -22,12 +22,14 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       _isFetching = false;
 
       await Future.delayed(const Duration(seconds: 2));
-      final pokemons = await getPokemonPage(limit: _limit, offset: 0);
-      final hasReachedMax = pokemons.length < _limit;
+      List<Pokemon> latestPokemons = const [];
 
-      _offset = pokemons.length;
+      await for (final pokemons in getPokemonPage(limit: _limit, offset: _offset)) {
+        latestPokemons = pokemons;
+        emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
+      }
 
-      emit(PokemonListData(pokemons: pokemons, hasReachedMax: hasReachedMax));
+      _offset = latestPokemons.length;
     });
   }
 
@@ -41,26 +43,24 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       if (currentState.hasReachedMax) return;
 
       _isFetching = true;
-
       emit(currentState.copyWith(isRefreshing: true));
 
+      List<Pokemon> accumulated = currentState.pokemons;
+      bool hasReachedMax = currentState.hasReachedMax;
+
       try {
-        await Future.delayed(const Duration(seconds: 0));
+        await for (final newPokemons in getPokemonPage(limit: _limit, offset: _offset)) {
+          accumulated = [...accumulated, ...newPokemons];
+          hasReachedMax = newPokemons.length < _limit;
 
-        final newPokemons = await getPokemonPage(limit: _limit, offset: _offset);
-        final hasReachedMax = newPokemons.length < _limit;
+          emit(PokemonListData(pokemons: accumulated, isRefreshing: true, hasReachedMax: hasReachedMax));
+        }
+        _offset += accumulated.length;
 
-        _offset += newPokemons.length;
-
-        emit(
-          PokemonListData(
-            pokemons: [...currentState.pokemons, ...newPokemons],
-            isRefreshing: false,
-            hasReachedMax: hasReachedMax,
-          ),
-        );
+        emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
       } catch (_) {
-        emit(currentState.copyWith(isRefreshing: false));
+        emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
+
         rethrow;
       } finally {
         _isFetching = false;

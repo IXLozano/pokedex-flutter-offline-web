@@ -10,7 +10,7 @@ class PokemonRemoteDataSourceImpl implements PokemonRemoteDataSource {
   PokemonRemoteDataSourceImpl({required Dio dio}) : _dio = dio;
 
   @override
-  Future<PokemonListResponseDto> getPokemonPage({required int limit, required int offset}) => //
+  Future<PokemonListResponseDto> fetchPokemonPage({required int limit, required int offset}) => //
   _execute(
     () => _dio
         .get('pokemon', queryParameters: {'limit': limit, 'offset': offset})
@@ -18,7 +18,7 @@ class PokemonRemoteDataSourceImpl implements PokemonRemoteDataSource {
   );
 
   @override
-  Future<PokemonDetailDto> getPokemonDetail(int id) => //
+  Future<PokemonDetailDto> fetchPokemonDetail(int id) => //
   _execute(
     () => _dio
         .get('pokemon/$id') //

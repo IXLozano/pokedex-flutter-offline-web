@@ -12,20 +12,34 @@ class PokemonRepositoryImpl implements PokemonRepository {
   PokemonRepositoryImpl({required PokemonRemoteDataSource source}) : _source = source;
 
   @override
-  Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) => //
-  _execute(
-    () => _source
-        .getPokemonPage(limit: limit, offset: offset)
-        .then((response) => response.results.map((e) => e.toEntity()).toList()),
-  );
+  Stream<List<Pokemon>> watchPokemonPage({required int limit, required int offset}) async* {
+    final remotePokemons = await _execute(
+      () => _source
+          .fetchPokemonPage(limit: limit, offset: offset)
+          .then((response) => response.results.map((e) => e.toEntity()).toList()),
+    );
+
+    final mergedPokemons = _mergePokemonsById(const <Pokemon>[], remotePokemons);
+
+    yield mergedPokemons;
+  }
 
   @override
-  Future<PokemonDetail> getPokemonDetail(int id) => //
-  _execute(
-    () => _source
-        .getPokemonDetail(id) //
-        .then((response) => response.toEntity()),
-  );
+  Stream<PokemonDetail> watchPokemonDetail(int id) async* {
+    yield await _execute(
+      () => _source
+          .fetchPokemonDetail(id) //
+          .then((response) => response.toEntity()),
+    );
+  }
+
+  List<Pokemon> _mergePokemonsById(List<Pokemon> existing, List<Pokemon> incoming) {
+    final map = <int, Pokemon>{for (final p in existing) p.id: p};
+    for (final p in incoming) {
+      map[p.id] = p;
+    }
+    return map.values.toList()..sort((a, b) => a.id.compareTo(b.id));
+  }
 
   Future<T> _execute<T>(Future<T> Function() action) async {
     try {

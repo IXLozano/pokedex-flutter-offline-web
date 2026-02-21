@@ -6,5 +6,5 @@ class GetPokemonDetail {
 
   GetPokemonDetail({required PokemonRepository repository}) : _repository = repository;
 
-  Future<PokemonDetail> call(int id) => _repository.getPokemonDetail(id);
+  Stream<PokemonDetail> call(int id) => _repository.watchPokemonDetail(id);
 }

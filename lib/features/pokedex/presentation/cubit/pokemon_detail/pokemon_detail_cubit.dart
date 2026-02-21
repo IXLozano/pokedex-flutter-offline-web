@@ -14,9 +14,9 @@ class PokemonDetailCubit extends Cubit<PokemonDetailState> {
     return _execute(() async {
       emit(PokemonDetailLoading());
 
-      final pokemonDetail = await getPokemonDetail(id);
-
-      emit(PokemonDetailData(pokemonDetail: pokemonDetail));
+      await for (final pokemonDetail in getPokemonDetail(id)) {
+        emit(PokemonDetailData(pokemonDetail: pokemonDetail));
+      }
     });
   }
 
