@@ -1,11 +1,12 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/datasources/local/pokedex_database.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/datasources/local/pokemon_local_datasource.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon_detail.dart';
 
-class PokemonLocalDataSourceImpl implements PokemonLocalDatasource {
+class PokemonLocalDataSourceImpl implements PokemonLocalDataSource {
   final PokedexDatabase _db;
 
   PokemonLocalDataSourceImpl({required PokedexDatabase db}) : _db = db;
@@ -59,6 +60,7 @@ class PokemonLocalDataSourceImpl implements PokemonLocalDatasource {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final row = PokemonDetailCacheTableCompanion.insert(
+      id: Value(detail.id),
       name: detail.name,
       imageUrl: detail.imageUrl,
       height: detail.height,

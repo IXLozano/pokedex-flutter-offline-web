@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:pokedex_flutter_offline_web/features/pokedex/data/datasources/local/pokedex_database.dart';
+import 'package:pokedex_flutter_offline_web/features/pokedex/data/datasources/local/pokemon_local_datasource_impl.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/datasources/remote/pokemon_remote_datasource_impl.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/repositories/pokemon_repository_impl.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/usecases/get_pokemon_detail.dart';
@@ -10,9 +12,12 @@ class PokedexModule {
   late final PokemonListCubit pokemonListCubit;
   late final PokemonDetailCubit pokemonDetailCubit;
 
-  PokedexModule({required Dio dio}) {
+  PokedexModule({required Dio dio, required PokedexDatabase db}) {
     final remoteDataSource = PokemonRemoteDataSourceImpl(dio: dio);
-    final repository = PokemonRepositoryImpl(source: remoteDataSource);
+    final localDataSource = PokemonLocalDataSourceImpl(db: db);
+
+    final repository = PokemonRepositoryImpl(remote: remoteDataSource, local: localDataSource);
+
     final getPokemonPage = GetPokemonPage(repository: repository);
     final getPokemonDetail = GetPokemonDetail(repository: repository);
 

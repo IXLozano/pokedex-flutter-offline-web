@@ -22,9 +22,9 @@ class PokemonDetailDto {
     name: json['name'] as String,
     height: json['height'] as int,
     weight: json['weight'] as int,
-    imageUrl: json['sprites']['front_default'] as String,
+    imageUrl: (json['sprites']?['front_default'] as String?) ?? '',
     types: (json['types'] as List).map((e) => e['type']['name'] as String).toList(),
-    stats: (json['stats'] as List).map((e) => PokemonStatDto.fromJson(e)).toList(),
+    stats: (json['stats'] as List).map((e) => PokemonStatDto.fromJson(e as Map<String, dynamic>)).toList(),
   );
 }
 

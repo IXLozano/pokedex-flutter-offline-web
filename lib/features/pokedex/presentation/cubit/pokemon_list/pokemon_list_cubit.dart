@@ -19,11 +19,14 @@ class PokemonListCubit extends Cubit<PokemonListState> {
 
       _isFetching = false;
 
-      await Future.delayed(const Duration(seconds: 2));
+      final pokemons = await _resolvePage(limit: _limit, offset: 0);
 
-      await for (final pokemons in getPokemonPage(limit: _limit, offset: 0)) {
-        emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
+      if (pokemons.isEmpty) {
+        emit(PokemonListError(message: 'No cached data and no network response.'));
+        return;
       }
+
+      emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
     });
   }
 
@@ -39,28 +42,42 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       _isFetching = true;
       emit(currentState.copyWith(isRefreshing: true));
 
-      List<Pokemon> accumulated = currentState.pokemons;
-      bool hasReachedMax = currentState.hasReachedMax;
-
       final offset = currentState.pokemons.length;
 
       try {
-        await for (final newPokemons in getPokemonPage(limit: _limit, offset: offset)) {
-          accumulated = [...accumulated, ...newPokemons];
-          hasReachedMax = newPokemons.length < _limit;
+        List<Pokemon> newPokemons = await _resolvePage(limit: _limit, offset: offset);
 
-          emit(PokemonListData(pokemons: accumulated, isRefreshing: true, hasReachedMax: hasReachedMax));
+        if (newPokemons.isEmpty) {
+          emit(currentState.copyWith(isRefreshing: false));
+          return;
         }
+
+        bool hasReachedMax = newPokemons.length < _limit;
+        List<Pokemon> accumulated = [...currentState.pokemons, ...newPokemons];
 
         emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
       } catch (_) {
-        emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
-
+        emit(currentState.copyWith(isRefreshing: false));
         rethrow;
       } finally {
         _isFetching = false;
       }
     });
+  }
+
+  Future<List<Pokemon>> _resolvePage({required int limit, required int offset}) async {
+    final stream = getPokemonPage(limit: limit, offset: offset).asBroadcastStream();
+
+    final firstEmission = await stream.first;
+    if (firstEmission.isNotEmpty) return firstEmission;
+
+    try {
+      return await stream
+          .firstWhere((page) => page.isNotEmpty)
+          .timeout(const Duration(seconds: 5), onTimeout: () => firstEmission);
+    } catch (_) {
+      return firstEmission;
+    }
   }
 
   Future<void> _execute(Future<void> Function() action) async {

@@ -68,5 +68,8 @@ class PokedexDatabase extends _$PokedexDatabase {
 }
 
 QueryExecutor _openConnection() {
-  return driftDatabase(name: 'pokedex_cache');
+  return driftDatabase(
+    name: 'pokedex_cache',
+    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker')),
+  );
 }

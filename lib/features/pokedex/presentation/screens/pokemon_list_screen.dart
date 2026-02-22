@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_list/pokemon_list_cubit.dart';
-import 'package:shimmer/shimmer.dart';
 
 class PokemonListScreen extends StatefulWidget {
   final void Function(int id)? onPokemonTap;
@@ -99,11 +98,7 @@ class _ListView extends StatelessWidget {
                       if (wasSynchronouslyLoaded) return child;
 
                       if (frame == null) {
-                        return Shimmer.fromColors(
-                          baseColor: const Color(0xFFCBD5E1),
-                          highlightColor: const Color(0xFFF8FAFC),
-                          child: Container(color: Color(0xFFCBD5E1)),
-                        );
+                        return const Icon(Icons.catching_pokemon, size: 40);
                       }
 
                       return child;

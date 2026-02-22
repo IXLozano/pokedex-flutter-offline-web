@@ -6,7 +6,7 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pok
 extension PokemonListItemDtoMapper on PokemonListItemDto {
   Pokemon toEntity() {
     final id = _extractIdFromUrl(url);
-    return Pokemon(id: id, name: name, imageUrl: _buildImageUrl(id));
+    return Pokemon(id: id, name: name, imageUrl: id > 0 ? _buildImageUrl(id) : '');
   }
 }
 
@@ -18,7 +18,15 @@ extension PokemonDetialDtoMapper on PokemonDetailDto {
 int _extractIdFromUrl(String url) {
   final uri = Uri.parse(url);
   final segments = uri.pathSegments.where((e) => e.isNotEmpty).toList();
-  return int.parse(segments.last);
+
+  final last = segments.isNotEmpty ? segments.last : '';
+  final parsed = int.tryParse(last);
+
+  if (parsed == null) {
+    throw FormatException('Invalid pokemon url: $url');
+  }
+
+  return parsed;
 }
 
 String _buildImageUrl(int id) => 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
