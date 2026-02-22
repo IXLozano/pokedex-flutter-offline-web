@@ -1,8 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon_detail.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_detail/pokemon_detail_cubit.dart';
-import 'package:shimmer/shimmer.dart';
 
 class PokemonDetailScreen extends StatefulWidget {
   final int pokemonId;
@@ -59,22 +59,15 @@ class _DetailView extends StatelessWidget {
             children: [
               SizedBox(
                 height: 200,
-                child: Image.network(
-                  pokemonDetail.imageUrl,
+                child: CachedNetworkImage(
+                  imageUrl: pokemonDetail.imageUrl,
                   fit: BoxFit.contain,
-                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded) return child;
-                    if (frame == null) {
-                      return Shimmer.fromColors(
-                        baseColor: const Color(0xFFCBD5E1),
-                        highlightColor: const Color(0xFFF8FAFC),
-                        child: Container(color: Color(0xFFCBD5E1)),
-                      );
-                    }
-
-                    return child;
-                  },
-                  errorBuilder: (_, _, _) => const Icon(Icons.catching_pokemon, size: 100),
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  memCacheWidth: 512,
+                  maxWidthDiskCache: 512,
+                  placeholder: (_, _) => const Icon(Icons.catching_pokemon, size: 100),
+                  errorWidget: (_, _, _) => const Icon(Icons.catching_pokemon, size: 100),
                 ),
               ),
 

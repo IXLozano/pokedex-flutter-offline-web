@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/core/error/failures.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
@@ -10,23 +12,30 @@ class PokemonListCubit extends Cubit<PokemonListState> {
 
   final int _limit = 20;
   bool _isFetching = false;
+  StreamSubscription<List<Pokemon>>? _firstPageSubscription;
 
   PokemonListCubit({required this.getPokemonPage}) : super(PokemonListInitial());
 
   Future<void> fetchInitial() {
     return _execute(() async {
       emit(PokemonListLoading());
-
       _isFetching = false;
+      await _firstPageSubscription?.cancel();
 
-      final pokemons = await _resolvePage(limit: _limit, offset: 0);
-
-      if (pokemons.isEmpty) {
+      final initialPage = await getPokemonPage.once(limit: _limit, offset: 0);
+      if (initialPage.isEmpty) {
         emit(PokemonListError(message: 'No cached data and no network response.'));
         return;
       }
 
-      emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
+      emit(PokemonListData(pokemons: initialPage, hasReachedMax: initialPage.length < _limit));
+
+      _firstPageSubscription = getPokemonPage.watch(limit: _limit, offset: 0).listen((pokemons) {
+        if (pokemons.isEmpty) return;
+        final current = state;
+        if (current is PokemonListData && current.pokemons.length > _limit) return;
+        emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
+      });
     });
   }
 
@@ -45,15 +54,15 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       final offset = currentState.pokemons.length;
 
       try {
-        List<Pokemon> newPokemons = await _resolvePage(limit: _limit, offset: offset);
+        final newPokemons = await getPokemonPage.once(limit: _limit, offset: offset);
 
         if (newPokemons.isEmpty) {
           emit(currentState.copyWith(isRefreshing: false));
           return;
         }
 
-        bool hasReachedMax = newPokemons.length < _limit;
-        List<Pokemon> accumulated = [...currentState.pokemons, ...newPokemons];
+        final hasReachedMax = newPokemons.length < _limit;
+        final accumulated = [...currentState.pokemons, ...newPokemons];
 
         emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
       } catch (_) {
@@ -65,21 +74,6 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     });
   }
 
-  Future<List<Pokemon>> _resolvePage({required int limit, required int offset}) async {
-    final stream = getPokemonPage(limit: limit, offset: offset).asBroadcastStream();
-
-    final firstEmission = await stream.first;
-    if (firstEmission.isNotEmpty) return firstEmission;
-
-    try {
-      return await stream
-          .firstWhere((page) => page.isNotEmpty)
-          .timeout(const Duration(seconds: 5), onTimeout: () => firstEmission);
-    } catch (_) {
-      return firstEmission;
-    }
-  }
-
   Future<void> _execute(Future<void> Function() action) async {
     try {
       await action();
@@ -88,5 +82,11 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     } catch (f) {
       emit(PokemonListError(message: 'Unexpected error: ${f.toString()}'));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _firstPageSubscription?.cancel();
+    return super.close();
   }
 }

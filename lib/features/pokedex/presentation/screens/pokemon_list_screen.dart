@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
@@ -88,23 +89,15 @@ class _ListView extends StatelessWidget {
               leading: SizedBox(
                 width: 50,
                 height: 50,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    pokemon.imageUrl,
-                    fit: BoxFit.contain,
-
-                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                      if (wasSynchronouslyLoaded) return child;
-
-                      if (frame == null) {
-                        return const Icon(Icons.catching_pokemon, size: 40);
-                      }
-
-                      return child;
-                    },
-                    errorBuilder: (_, _, _) => const Icon(Icons.catching_pokemon, size: 40),
-                  ),
+                child: CachedNetworkImage(
+                  imageUrl: pokemon.imageUrl,
+                  fit: BoxFit.contain,
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  memCacheWidth: 96,
+                  maxWidthDiskCache: 96,
+                  placeholder: (_, _) => const Icon(Icons.catching_pokemon, size: 40),
+                  errorWidget: (_, _, _) => const Icon(Icons.catching_pokemon, size: 40),
                 ),
               ),
             );

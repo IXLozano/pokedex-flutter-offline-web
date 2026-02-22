@@ -19,8 +19,25 @@ class PokemonRepositoryImpl implements PokemonRepository {
 
   @override
   Stream<List<Pokemon>> watchPokemonPage({required int limit, required int offset}) {
-    unawaited(_revalidatePage(limit: limit, offset: offset));
     return _local.watchPokemonPage(limit: limit, offset: offset);
+  }
+
+  @override
+  Future<List<Pokemon>> getPokemonPageOnce({required int limit, required int offset}) async {
+    final cached = await _local.getPokemonPage(limit: limit, offset: offset);
+    if (cached.isNotEmpty) {
+      unawaited(_revalidatePage(limit: limit, offset: offset));
+      return cached;
+    }
+
+    final remotePokemons = await _execute(
+      () => _remote
+          .fetchPokemonPage(limit: limit, offset: offset)
+          .then((response) => response.results.map((e) => e.toEntity()).toList()),
+    );
+
+    await _execute(() => _local.savePokemonPage(offset: offset, pokemons: remotePokemons));
+    return remotePokemons;
   }
 
   @override
@@ -29,7 +46,7 @@ class PokemonRepositoryImpl implements PokemonRepository {
     return _local.watchPokemonDetail(id).where((detail) => detail != null).cast<PokemonDetail>();
   }
 
-  Future<void> _revalidatePage({required int limit, required int offset}) async {
+  Future<void> _revalidatePage({required int limit, required int offset, bool swallowErrors = true}) async {
     try {
       final remotePokemons = await _execute(
         () => _remote
@@ -38,9 +55,9 @@ class PokemonRepositoryImpl implements PokemonRepository {
       );
       await _execute(() => _local.savePokemonPage(offset: offset, pokemons: remotePokemons));
     } on Failure {
-      // Ignore background revalidation errors to keep local stream as source of truth.
+      if (!swallowErrors) rethrow;
     } catch (_) {
-      // Ignore unexpected background revalidation errors.
+      if (!swallowErrors) rethrow;
     }
   }
 

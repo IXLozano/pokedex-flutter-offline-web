@@ -4,6 +4,8 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pok
 abstract class PokemonLocalDataSource {
   Stream<List<Pokemon>> watchPokemonPage({required int limit, required int offset});
 
+  Future<List<Pokemon>> getPokemonPage({required int limit, required int offset});
+
   Future<void> savePokemonPage({required int offset, required List<Pokemon> pokemons});
 
   Stream<PokemonDetail?> watchPokemonDetail(int id);

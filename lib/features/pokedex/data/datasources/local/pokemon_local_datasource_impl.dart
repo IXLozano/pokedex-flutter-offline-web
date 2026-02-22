@@ -19,6 +19,12 @@ class PokemonLocalDataSourceImpl implements PokemonLocalDataSource {
   }
 
   @override
+  Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) async {
+    final rows = await _db.getPokemonPage(limit: limit, offset: offset);
+    return rows.map((row) => Pokemon(id: row.pokemonId, name: row.name, imageUrl: row.imageUrl)).toList();
+  }
+
+  @override
   Future<void> savePokemonPage({required int offset, required List<Pokemon> pokemons}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 

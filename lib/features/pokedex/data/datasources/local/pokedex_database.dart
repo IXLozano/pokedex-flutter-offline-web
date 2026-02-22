@@ -44,6 +44,15 @@ class PokedexDatabase extends _$PokedexDatabase {
     return query.watch();
   }
 
+  Future<List<PokemonListCacheTableData>> getPokemonPage({required int limit, required int offset}) {
+    final query = select(pokemonListCacheTable)
+      ..where((t) => t.pageOffset.equals(offset))
+      ..orderBy([(t) => OrderingTerm.asc(t.position)])
+      ..limit(limit);
+
+    return query.get();
+  }
+
   Future<void> replacePokemonPage({required int offset, required List<PokemonListCacheTableCompanion> rows}) async {
     await transaction(() async {
       await (delete(pokemonListCacheTable)..where((t) => t.pageOffset.equals(offset))).go();
@@ -70,6 +79,6 @@ class PokedexDatabase extends _$PokedexDatabase {
 QueryExecutor _openConnection() {
   return driftDatabase(
     name: 'pokedex_cache',
-    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker')),
+    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker.js')),
   );
 }
