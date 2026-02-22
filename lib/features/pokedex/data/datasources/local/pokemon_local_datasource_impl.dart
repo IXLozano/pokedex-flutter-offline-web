@@ -12,13 +12,6 @@ class PokemonLocalDataSourceImpl implements PokemonLocalDataSource {
   PokemonLocalDataSourceImpl({required PokedexDatabase db}) : _db = db;
 
   @override
-  Stream<List<Pokemon>> watchPokemonPage({required int limit, required int offset}) {
-    return _db
-        .watchPokemonPage(limit: limit, offset: offset)
-        .map((rows) => rows.map((row) => Pokemon(id: row.pokemonId, name: row.name, imageUrl: row.imageUrl)).toList());
-  }
-
-  @override
   Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) async {
     final rows = await _db.getPokemonPage(limit: limit, offset: offset);
     return rows.map((row) => Pokemon(id: row.pokemonId, name: row.name, imageUrl: row.imageUrl)).toList();

@@ -18,18 +18,18 @@ class PokemonRepositoryImpl implements PokemonRepository {
       _local = local;
 
   @override
-  Stream<List<Pokemon>> watchPokemonPage({required int limit, required int offset}) {
-    return _local.watchPokemonPage(limit: limit, offset: offset);
-  }
-
-  @override
   Future<List<Pokemon>> getPokemonPageOnce({required int limit, required int offset}) async {
+    // TODO: Search for cached data
     final cached = await _local.getPokemonPage(limit: limit, offset: offset);
+    // TODO: IF CACHE EXIST
     if (cached.isNotEmpty) {
+      // TODO: return it, and in the BG: get remote, save it in local
       unawaited(_revalidatePage(limit: limit, offset: offset));
       return cached;
     }
 
+    // TODO: IF CACHE DOESNT EXIST
+    // TODO Get remote data, save it into local, return local
     final remotePokemons = await _execute(
       () => _remote
           .fetchPokemonPage(limit: limit, offset: offset)
@@ -37,13 +37,33 @@ class PokemonRepositoryImpl implements PokemonRepository {
     );
 
     await _execute(() => _local.savePokemonPage(offset: offset, pokemons: remotePokemons));
-    return remotePokemons;
+
+    return await _execute(() => _local.getPokemonPage(limit: limit, offset: offset));
   }
 
   @override
-  Stream<PokemonDetail> watchPokemonDetail(int id) {
-    unawaited(_revalidateDetail(id));
-    return _local.watchPokemonDetail(id).where((detail) => detail != null).cast<PokemonDetail>();
+  Stream<PokemonDetail> watchPokemonDetail(int id) async* {
+    // unawaited(_revalidateDetail(id));
+    // return _local.watchPokemonDetail(id).where((detail) => detail != null).cast<PokemonDetail>();\
+
+    final cacheDetail = await _local.watchPokemonDetail(id).first;
+
+    if (cacheDetail != null) {
+      yield cacheDetail;
+      unawaited(_revalidateDetail(id));
+      return;
+    }
+
+    final remoteDetail = await _execute(() => _remote.fetchPokemonDetail(id).then((response) => response.toEntity()));
+    await _execute(() => _local.savePokemonDetail(remoteDetail));
+
+    final savedDetail = await _local.watchPokemonDetail(id).first;
+    if (savedDetail != null) {
+      yield savedDetail;
+      return;
+    }
+
+    yield remoteDetail;
   }
 
   Future<void> _revalidatePage({required int limit, required int offset, bool swallowErrors = true}) async {
@@ -55,6 +75,7 @@ class PokemonRepositoryImpl implements PokemonRepository {
       );
       await _execute(() => _local.savePokemonPage(offset: offset, pokemons: remotePokemons));
     } on Failure {
+      //TODO: _execute method is already being used by those 2 calls, maybe main try catch wrapper is not needed
       if (!swallowErrors) rethrow;
     } catch (_) {
       if (!swallowErrors) rethrow;

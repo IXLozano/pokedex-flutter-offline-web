@@ -12,7 +12,6 @@ class PokemonListCubit extends Cubit<PokemonListState> {
 
   final int _limit = 20;
   bool _isFetching = false;
-  StreamSubscription<List<Pokemon>>? _firstPageSubscription;
 
   PokemonListCubit({required this.getPokemonPage}) : super(PokemonListInitial());
 
@@ -20,22 +19,15 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     return _execute(() async {
       emit(PokemonListLoading());
       _isFetching = false;
-      await _firstPageSubscription?.cancel();
 
       final initialPage = await getPokemonPage.once(limit: _limit, offset: 0);
+
       if (initialPage.isEmpty) {
         emit(PokemonListError(message: 'No cached data and no network response.'));
         return;
       }
 
       emit(PokemonListData(pokemons: initialPage, hasReachedMax: initialPage.length < _limit));
-
-      _firstPageSubscription = getPokemonPage.watch(limit: _limit, offset: 0).listen((pokemons) {
-        if (pokemons.isEmpty) return;
-        final current = state;
-        if (current is PokemonListData && current.pokemons.length > _limit) return;
-        emit(PokemonListData(pokemons: pokemons, hasReachedMax: pokemons.length < _limit));
-      });
     });
   }
 
@@ -82,11 +74,5 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     } catch (f) {
       emit(PokemonListError(message: 'Unexpected error: ${f.toString()}'));
     }
-  }
-
-  @override
-  Future<void> close() async {
-    await _firstPageSubscription?.cancel();
-    return super.close();
   }
 }

@@ -6,9 +6,6 @@ class GetPokemonPage {
 
   GetPokemonPage({required PokemonRepository repository}) : _repository = repository;
 
-  Stream<List<Pokemon>> watch({int limit = 20, int offset = 0}) =>
-      _repository.watchPokemonPage(limit: limit, offset: offset);
-
   Future<List<Pokemon>> once({int limit = 20, int offset = 0}) =>
       _repository.getPokemonPageOnce(limit: limit, offset: offset);
 }
