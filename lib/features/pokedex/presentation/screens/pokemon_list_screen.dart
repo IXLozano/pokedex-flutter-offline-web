@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_list/pokemon_list_cubit.dart';
 
+/// Screen that renders pokemon list states and handles infinite-scroll triggers.
 class PokemonListScreen extends StatefulWidget {
   final void Function(int id)? onPokemonTap;
 
@@ -19,6 +20,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   final ScrollController _scrollController = ScrollController();
   StreamSubscription<String>? _uiEventsSubscription;
 
+  /// Boots initial list fetch and subscribes to transient UI events.
   @override
   void initState() {
     super.initState();
@@ -34,12 +36,14 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     _scrollController.addListener(_handleController);
   }
 
+  /// Triggers pagination when the user reaches the bottom threshold.
   void _handleController() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 400) {
       context.read<PokemonListCubit>().fetchNextPage();
     }
   }
 
+  /// Cleans up subscriptions and controllers used by this screen.
   @override
   void dispose() {
     _uiEventsSubscription?.cancel();
@@ -48,6 +52,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     super.dispose();
   }
 
+  /// Builds the list screen using the current cubit state.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,11 +77,13 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   }
 }
 
+/// Empty-state view shown when no pokemon data exists.
 class _EmptyListView extends StatelessWidget {
   final VoidCallback onRetry;
 
   const _EmptyListView({required this.onRetry});
 
+  /// Builds an empty-state message with a retry action.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -94,6 +101,7 @@ class _EmptyListView extends StatelessWidget {
   }
 }
 
+/// Scrollable pokemon list with optional bottom refresh indicator.
 class _ListView extends StatelessWidget {
   const _ListView({
     required ScrollController scrollController,
@@ -107,6 +115,7 @@ class _ListView extends StatelessWidget {
   final PokemonListScreen widget;
   final bool isRefreshing;
 
+  /// Builds list items and pagination indicator for the current data set.
   @override
   Widget build(BuildContext context) {
     return Stack(

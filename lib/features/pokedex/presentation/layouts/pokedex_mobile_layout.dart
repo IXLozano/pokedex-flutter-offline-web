@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokemon_detail_screen.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokemon_list_screen.dart';
 
+/// Mobile layout that uses push navigation from list to detail.
 class PokedexMobileLayout extends StatelessWidget {
   const PokedexMobileLayout({super.key});
 
+  /// Builds list-first navigation optimized for narrow screens.
   @override
   Widget build(BuildContext context) {
     return PokemonListScreen(

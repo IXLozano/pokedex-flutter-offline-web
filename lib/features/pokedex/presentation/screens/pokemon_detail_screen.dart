@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon_detail.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_detail/pokemon_detail_cubit.dart';
 
+/// Screen that renders the pokemon detail flow for a selected pokemon id.
 class PokemonDetailScreen extends StatefulWidget {
   final int pokemonId;
 
@@ -14,12 +15,14 @@ class PokemonDetailScreen extends StatefulWidget {
 }
 
 class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
+  /// Requests detail when the screen is first mounted.
   @override
   void initState() {
     super.initState();
     context.read<PokemonDetailCubit>().fetch(widget.pokemonId);
   }
 
+  /// Requests detail again when selected pokemon id changes.
   @override
   void didUpdateWidget(covariant PokemonDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -27,6 +30,7 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
     if (oldWidget.pokemonId != widget.pokemonId) context.read<PokemonDetailCubit>().fetch(widget.pokemonId);
   }
 
+  /// Builds the detail UI according to the current cubit state.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,10 +48,12 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   }
 }
 
+/// Detail content view for a loaded pokemon detail entity.
 class _DetailView extends StatelessWidget {
   final PokemonDetail pokemonDetail;
   const _DetailView({required this.pokemonDetail});
 
+  /// Builds the pokemon detail content and metadata chips.
   @override
   Widget build(BuildContext context) {
     return Center(

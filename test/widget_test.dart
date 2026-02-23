@@ -10,7 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokedex_flutter_offline_web/core/di/app_injection.dart';
 import 'package:pokedex_flutter_offline_web/main.dart';
 
+/// Entry point for baseline widget smoke tests.
 void main() {
+  /// Verifies that the default counter sample behavior still works.
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(PokedexApp(injection: AppInjection()));

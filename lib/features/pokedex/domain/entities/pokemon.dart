@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// Lightweight domain entity used by list and pagination views.
 class Pokemon extends Equatable {
   final int id;
   final String name;

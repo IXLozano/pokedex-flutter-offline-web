@@ -45,155 +45,111 @@ Ensure these files exist in `web/`:
 
 ---
 
-## Architecture And Scalability
+## Mandatory Questionnaire (Required by the technical test)
 
-### Chosen architecture
-Feature-first + Clean Architecture layers:
+### 1) What architecture or pattern did you use, and why does it scale to a real product (including Web)?
+Feature-first + Clean Architecture:
 - `presentation` (screens, cubits, states)
 - `domain` (entities, use cases, repository contracts)
 - `data` (remote/local datasources, DTOs, mappers, repository impl)
 - `core` (network, errors, responsive, DI)
 
-### Why this scales to real product (including web)
+Why it scales:
 - Domain contracts isolate business rules from framework/infrastructure.
-- Data layer can evolve independently (sync, retries, metrics, auth).
-- Local + remote datasources allow progressive offline strategy without rewriting UI.
-- Web constraints (worker/wasm/local persistence) are isolated in data/local setup.
+- Data layer can evolve independently (sync, retries, auth, telemetry).
+- Local + remote datasources support progressive offline improvements.
+- Web-specific constraints (worker/wasm/persistence) are isolated in local data setup.
 
----
+### 2) What trade-offs did you make within the 48-72 hour delivery window?
+Prioritized:
+- End-to-end functional scope: list, detail, pagination, responsive web/mobile, and offline cache behavior.
+- Solid architecture boundaries (presentation/domain/data) and maintainable layering.
+- Reliable user experience for network failures (non-blocking pagination errors, cached data continuity).
+- Practical offline-first behavior with local persistence and TTL-based revalidation.
 
-## Timebox Trade-Offs (1 Day)
+Deprioritized:
+- Advanced visual polish (custom animations, richer transitions, premium UI details).
+- Full test coverage (current tests focus on highest-risk repository/cubit paths).
+- Complex cache policies (manual conflict resolution, fine-grained invalidation rules per resource).
+- Advanced web navigation patterns (declarative router and deep-linking refinements).
 
-### What was prioritized
-- Functional completeness (list, detail, pagination, offline cache)
-- Stable architecture boundaries
-- Web compatibility with local persistence
-- Critical UX states and error handling
 
-### What was deprioritized
-- Deep UI polish/animations
-- Large test suite
-- Advanced cache invalidation policies (TTL/version migrations beyond base)
-- Router declarative migration
-
----
-
-## State Management And Side Effects
-
-### Flow
+### 3) How did you handle state management and side effects (UI -> state -> data), and how did you avoid coupling?
+Flow:
 `UI -> Cubit -> UseCase -> Repository -> DataSource (remote/local)`
 
-### Decoupling approach
+Decoupling decisions:
 - Cubits depend on use cases, not infrastructure.
-- Use cases depend on repository contracts.
-- Repository maps data/exceptions into domain-friendly behavior.
-- Side effects (network, DB writes) stay in data layer.
+- Use cases depend on repository abstractions.
+- Repository maps data exceptions to domain failures.
+- Side effects (HTTP/DB writes) stay in the data layer.
 
-### List behavior
-- Initial load: one-shot page load (cache-first fallback to remote), then UI state update.
-- Pagination: one-shot page request per scroll threshold.
-- Refresh indicator: controlled by Cubit `isRefreshing`.
-
-### Detail behavior
-- Reactive local stream + background revalidation pattern.
-
----
-
-## Offline And Cache Strategy
-
-### What is persisted
-- Pokémon list pages (by `offset + position`)
+### 4) What is your offline/cache strategy: what do you persist, how do you invalidate/version, and how do you resolve conflicts?
+Persisted:
+- Pokémon list pages (`offset + position`)
 - Pokémon detail by `id`
-- `updatedAt` timestamp per row
+- `updatedAt` per row
 
-### Strategy
-- Cache-first for read path.
-- Remote revalidation updates local cache.
-- UI renders from cached data when available.
-- Offline mode serves previously persisted content.
+Strategy:
+- Cache-first reads.
+- Remote revalidation writes back to local.
+- UI renders cached content when available.
+- Offline serves latest persisted data.
 
-### Invalidation / versioning / conflict policy
-- Current policy: replace page snapshot on fresh fetch, upsert detail by id.
+Invalidation/versioning/conflict:
+- TTL: 1 hour for list and detail revalidation.
+- Offline: never hard-invalidates cached data by TTL.
 - Conflict resolution: remote wins when revalidation succeeds.
-- Versioning: DB schema version via Drift (`schemaVersion`), ready for migrations.
+- Versioning/migrations: Drift schema version (`schemaVersion`).
 
----
+### 5) What decisions did you make for Flutter Web UX (responsive, desktop-like interaction, performance), and what are the limitations/mitigations?
+Decisions:
+- Responsive split layout on desktop/tablet; push navigation on mobile.
+- Drift web setup with `sqlite3.wasm` + worker asset.
+- Same business/data flow across mobile and web.
+- `cached_network_image` and lightweight placeholders to reduce jank.
 
-## Flutter Web Decisions
+Limitations and mitigations:
+- Web requires correct worker/wasm file naming and URI configuration.
+- Browser storage support can vary by environment.
+- With empty cache and no internet, app cannot bootstrap new data (expected); empty/error states are shown.
 
-### Decisions taken
-- Responsive split layout for desktop/tablet and push navigation on mobile
-- Drift web setup with wasm + worker assets
-- DB logic isolated from presentation for web/mobile parity
-- Conservative image/loading strategy for smoother scrolling
-
-### Limitations and mitigations
-- Web requires correct worker/wasm file naming and paths.
-- Browser storage behavior may differ by environment; app still relies on initial online fetch when cache is empty.
-- Large image decode on mobile/web can affect smoothness; mitigated with cached image strategy.
-
----
-
-## Code Quality (3 Concrete Decisions)
-
+### 6) Which 3 clean-code decisions did you apply? (include concrete examples)
 1. Exception -> Failure mapping boundary  
-   Data exceptions (`NetworkException`, `ServerException`, etc.) are mapped into domain failures centrally in repository execution wrapper.
+   `PokemonRepositoryImpl._execute` maps `NetworkException`, `ServerException`, etc. into domain `Failure`.
 
 2. Layered contracts  
-   Presentation and domain depend on abstractions, not concrete HTTP/DB implementations.
+   Presentation/domain depend on abstractions (`PokemonRepository`), not concrete Dio/Drift classes.
 
 3. Single responsibility per layer  
-   DTO parsing/mapping in data, state transitions in Cubit, and DB schema/query methods in local datasource/database classes.
+   DTO parsing/mapping in data mappers, UI state transitions in Cubits, SQL/cache operations in local datasource/database.
 
----
-
-## Testing
-
-### What is currently tested
+### 7) What did you test and why? If incomplete, which tests would you add first and what would they guarantee?
+Currently tested:
 1. `PokemonListCubit`
-   - `fetchNextPage` keeps previous cached data when pagination fails
-   - Emits UI event/snackbar message for non-blocking pagination errors
-   - Avoids replacing the full screen with a blocking error state during pagination failures
-
+   - Keeps previous data on pagination failure
+   - Emits non-blocking UI event for pagination errors
+   - Avoids replacing list screen with full error during pagination
 2. `PokemonRepositoryImpl`
-   - `getPokemonPageOnce` on cache miss: fetches remote, persists to local, returns expected page data
-   - `watchPokemonDetail` on cache miss + remote failure: propagates mapped failure correctly
+   - `getPokemonPageOnce` cache miss -> remote fetch -> local save -> expected result
+   - `watchPokemonDetail` cache miss + remote failure -> propagates mapped failure
 
-### If limited by time, first tests to add (priority)
-1. `PokemonListCubit`
-   - Initial success, empty, error
-   - Pagination success and no duplicate fetch while loading
-2. `PokemonRepository`
-   - Cache hit behavior
-   - Cache miss -> remote fetch -> local save
-   - Remote failure handling
-3. `PokemonDetailCubit`
-   - Loading -> data
-   - Loading -> error
+Next tests by priority:
+1. `PokemonListCubit` initial success/empty/error and no duplicated pagination requests
+2. `PokemonRepository` cache hit/stale/revalidation scenarios
+3. `PokemonDetailCubit` loading/data/error transitions and subscription lifecycle
 
-These tests ensure correctness on the highest-risk flows (state transitions + offline cache path).
+### 8) How did you structure commits (granularity, messages, convention) to ease review and maintenance?
+- Small, focused commits by concern (cache, web setup, state handling, UI behavior, tests).
+- Conventional commit style: `feat(scope): ...`, `fix(scope): ...`, `test(scope): ...`, `docs(scope): ...`.
+- Avoided mixing unrelated refactors in the same commit.
 
----
-
-## Git Strategy
-
-### Commit structure
-- Small, focused commits by concern:
-  - Architecture contract changes
-  - Local persistence integration
-  - Web compatibility fixes
-  - UI/performance fixes
-- Conventional messages (`feat(scope): ...`, `fix(scope): ...`) to simplify review and maintenance.
-
----
-
-## Pending Work (Top 3-5)
-
-1. Add full automated tests (Cubit + repository + critical widgets)
-2. Define explicit TTL/refresh policy and optional manual refresh action
-3. Improve detail/list consistency under no-network startup scenarios
-4. Add richer error UX (retry actions, contextual messages)
-5. Introduce telemetry/perf profiling for web and low-end mobile
+### 9) What is still pending (top 3-5), and how would you implement it?
+1. Expand automated coverage (repository + cubits + key widget tests).
+2. Add explicit pull-to-refresh action with user-visible freshness feedback.
+3. Improve retry UX in detail/list errors with contextual actions.
+4. Add lightweight telemetry/perf metrics for web and low-end devices.
+5. Prepare optional router declarative migration for web-style navigation flows.
 
 ---
 

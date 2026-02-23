@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokemon_detail_screen.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/screens/pokemon_list_screen.dart';
 
+/// Desktop/tablet layout with side-by-side list and detail panels.
 class PokedexDesktopLayout extends StatefulWidget {
   const PokedexDesktopLayout({super.key});
 
@@ -12,6 +13,7 @@ class PokedexDesktopLayout extends StatefulWidget {
 class _PokedexDesktopLayoutState extends State<PokedexDesktopLayout> {
   int? _selectedPokemonId;
 
+  /// Builds split-view navigation with persistent list and dynamic detail pane.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,9 +32,11 @@ class _PokedexDesktopLayoutState extends State<PokedexDesktopLayout> {
   }
 }
 
+/// Placeholder shown before selecting a pokemon in split-view layout.
 class _PlaceHolderDetail extends StatelessWidget {
   const _PlaceHolderDetail();
 
+  /// Builds the default right-panel placeholder content.
   @override
   Widget build(BuildContext context) {
     return Center(

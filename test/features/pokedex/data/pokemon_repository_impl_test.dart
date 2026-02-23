@@ -11,6 +11,7 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/data/repositories/p
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/entities/pokemon_detail.dart';
 
+/// Fake local datasource with in-memory storage for repository tests.
 class _FakeLocalDataSource implements PokemonLocalDataSource {
   List<Pokemon> _page0 = const <Pokemon>[];
   int? _page0UpdatedAt;
@@ -18,18 +19,21 @@ class _FakeLocalDataSource implements PokemonLocalDataSource {
   final _detailControllers = <int, StreamController<PokemonDetail?>>{};
   final _detailUpdatedAt = <int, int?>{};
 
+  /// Returns a cached page for the provided offset.
   @override
   Future<List<Pokemon>> getPokemonPage({required int limit, required int offset}) async {
     if (offset == 0) return _page0;
     return const <Pokemon>[];
   }
 
+  /// Returns a page-level updated timestamp for TTL checks.
   @override
-  Future<int?> getPokemonPageUpdatedAt({required int offset}) async {
+  Future<int?> getPokemonPageLatestTimeStamp({required int offset}) async {
     if (offset == 0) return _page0UpdatedAt;
     return null;
   }
 
+  /// Persists one list page in fake local storage.
   @override
   Future<void> savePokemonPage({required int offset, required List<Pokemon> pokemons}) async {
     if (offset == 0) {
@@ -38,6 +42,7 @@ class _FakeLocalDataSource implements PokemonLocalDataSource {
     }
   }
 
+  /// Watches cached detail values and emits current value on subscription.
   @override
   Stream<PokemonDetail?> watchPokemonDetail(int id) {
     final controller = _detailControllers.putIfAbsent(id, () => StreamController<PokemonDetail?>.broadcast());
@@ -52,17 +57,20 @@ class _FakeLocalDataSource implements PokemonLocalDataSource {
     });
   }
 
+  /// Pushes one detail value into the watched stream for the provided id.
   void emitDetail(int id, PokemonDetail? detail) {
     _detailsById[id] = detail;
     final controller = _detailControllers.putIfAbsent(id, () => StreamController<PokemonDetail?>.broadcast());
     controller.add(detail);
   }
 
+  /// Returns detail-level updated timestamp for TTL checks.
   @override
-  Future<int?> getPokemonDetailUpdatedAt(int id) async {
+  Future<int?> getPokemonDetailLatestTimeStamp(int id) async {
     return _detailUpdatedAt[id];
   }
 
+  /// Persists one detail value and emits it to active watchers.
   @override
   Future<void> savePokemonDetail(PokemonDetail detail) async {
     _detailUpdatedAt[detail.id] = DateTime.now().millisecondsSinceEpoch;
@@ -71,18 +79,21 @@ class _FakeLocalDataSource implements PokemonLocalDataSource {
   }
 }
 
+/// Fake remote datasource with configurable callbacks for repository tests.
 class _FakeRemoteDataSource implements PokemonRemoteDataSource {
   int fetchPageCalls = 0;
   int fetchDetailCalls = 0;
   Future<PokemonListResponseDto> Function({required int limit, required int offset})? onFetchPage;
   Future<PokemonDetailDto> Function(int id)? onFetchDetail;
 
+  /// Executes configured list callback and tracks invocation count.
   @override
   Future<PokemonListResponseDto> fetchPokemonPage({required int limit, required int offset}) {
     fetchPageCalls++;
     return onFetchPage!(limit: limit, offset: offset);
   }
 
+  /// Executes configured detail callback and tracks invocation count.
   @override
   Future<PokemonDetailDto> fetchPokemonDetail(int id) {
     fetchDetailCalls++;
@@ -90,6 +101,7 @@ class _FakeRemoteDataSource implements PokemonRemoteDataSource {
   }
 }
 
+/// Entry point for pokemon repository implementation tests.
 void main() {
   group('PokemonRepositoryImpl', () {
     test('getPokemonPageOnce cache miss fetches remote, saves local, and returns local snapshot', () async {

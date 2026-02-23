@@ -4,11 +4,13 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/data/exceptions/exc
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/models/pokemon_detail_dto.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/data/models/pokemon_list_response_dto.dart';
 
+/// Dio-based implementation of the remote pokemon data source.
 class PokemonRemoteDataSourceImpl implements PokemonRemoteDataSource {
   final Dio _dio;
 
   PokemonRemoteDataSourceImpl({required Dio dio}) : _dio = dio;
 
+  /// Executes the remote list request and parses the response DTO.
   @override
   Future<PokemonListResponseDto> fetchPokemonPage({required int limit, required int offset}) => //
   _execute(
@@ -17,6 +19,7 @@ class PokemonRemoteDataSourceImpl implements PokemonRemoteDataSource {
         .then((response) => PokemonListResponseDto.fromJson(response.data as Map<String, dynamic>)),
   );
 
+  /// Executes the remote detail request and parses the response DTO.
   @override
   Future<PokemonDetailDto> fetchPokemonDetail(int id) => //
   _execute(
@@ -25,6 +28,7 @@ class PokemonRemoteDataSourceImpl implements PokemonRemoteDataSource {
         .then((response) => PokemonDetailDto.fromJson(response.data as Map<String, dynamic>)),
   );
 
+  /// Wraps remote execution and maps low-level errors into typed data exceptions.
   Future<T> _execute<T>(Future<T> Function() action) async {
     try {
       return await action();

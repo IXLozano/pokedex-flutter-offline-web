@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// Rich domain entity used by the detail screen.
 class PokemonDetail extends Equatable {
   final int id;
   final String name;

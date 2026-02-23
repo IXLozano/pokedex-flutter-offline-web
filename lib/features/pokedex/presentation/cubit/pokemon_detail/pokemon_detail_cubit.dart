@@ -7,12 +7,14 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/usecases/get
 
 part 'pokemon_detail_state.dart';
 
+/// Cubit that manages detail loading and active detail stream subscription.
 class PokemonDetailCubit extends Cubit<PokemonDetailState> {
   final GetPokemonDetail getPokemonDetail;
   StreamSubscription<PokemonDetail>? _detailSubscription;
 
   PokemonDetailCubit({required this.getPokemonDetail}) : super(PokemonDetailInitial());
 
+  /// Starts listening to one pokemon detail flow for the provided id.
   Future<void> fetch(int id) {
     return _execute(() async {
       emit(PokemonDetailLoading());
@@ -34,12 +36,14 @@ class PokemonDetailCubit extends Cubit<PokemonDetailState> {
     });
   }
 
+  /// Cancels active detail subscription before cubit disposal.
   @override
   Future<void> close() async {
     await _detailSubscription?.cancel();
     return super.close();
   }
 
+  /// Executes cubit actions and maps failures into detail error states.
   Future<void> _execute(Future<void> Function() action) async {
     try {
       return await action();

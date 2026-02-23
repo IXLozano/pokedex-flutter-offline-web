@@ -8,6 +8,7 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/usecases/get
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_detail/pokemon_detail_cubit.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_list/pokemon_list_cubit.dart';
 
+/// Feature-level composition root for Pokedex dependencies and Cubits.
 class PokedexModule {
   late final PokemonListCubit pokemonListCubit;
   late final PokemonDetailCubit pokemonDetailCubit;

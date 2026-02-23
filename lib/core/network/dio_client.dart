@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pokedex_flutter_offline_web/core/network/logging_interceptor.dart';
 
+/// Centralized Dio setup for the whole app.
+/// Defines base URL, timeouts, and interceptor chain.
 class DioClient {
   late final Dio dio;
 
@@ -17,6 +19,8 @@ class DioClient {
 
     dio.interceptors.add(LoggingInterceptor());
 
-    if (kDebugMode) dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+    }
   }
 }

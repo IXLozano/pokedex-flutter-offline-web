@@ -8,11 +8,13 @@ import 'package:pokedex_flutter_offline_web/features/pokedex/domain/repositories
 import 'package:pokedex_flutter_offline_web/features/pokedex/domain/usecases/get_pokemon_page.dart';
 import 'package:pokedex_flutter_offline_web/features/pokedex/presentation/cubit/pokemon_list/pokemon_list_cubit.dart';
 
+/// Fake repository used to control list-page responses in cubit tests.
 class _FakePokemonRepository implements PokemonRepository {
   final Map<int, Future<List<Pokemon>> Function()> _pagesByOffset;
 
   _FakePokemonRepository(this._pagesByOffset);
 
+  /// Returns configured page data for the requested offset.
   @override
   Future<List<Pokemon>> getPokemonPageOnce({required int limit, required int offset}) {
     final loader = _pagesByOffset[offset];
@@ -20,10 +22,12 @@ class _FakePokemonRepository implements PokemonRepository {
     return loader();
   }
 
+  /// Not used in list cubit tests.
   @override
   Stream<PokemonDetail> watchPokemonDetail(int id) => const Stream.empty();
 }
 
+/// Entry point for pokemon list cubit tests.
 void main() {
   group('PokemonListCubit', () {
     test('fetchNextPage keeps previous data when request fails and emits UI event', () async {

@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+/// Lightweight network interceptor for development-time traceability.
 class LoggingInterceptor extends Interceptor {
+  /// Logs outgoing method, URL, and optional body before dispatch.
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (kDebugMode) {
@@ -14,6 +16,7 @@ class LoggingInterceptor extends Interceptor {
     super.onRequest(options, handler);
   }
 
+  /// Logs status code and URL for successful responses.
   @override
   void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
     if (kDebugMode) {
@@ -23,6 +26,7 @@ class LoggingInterceptor extends Interceptor {
     super.onResponse(response, handler);
   }
 
+  /// Logs status and message for failed requests.
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (kDebugMode) {
