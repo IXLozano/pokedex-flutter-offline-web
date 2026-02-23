@@ -6,6 +6,8 @@ class PokemonListInitial extends PokemonListState {}
 
 class PokemonListLoading extends PokemonListState {}
 
+class PokemonListEmpty extends PokemonListState {}
+
 class PokemonListData extends PokemonListState {
   final List<Pokemon> pokemons;
   final bool isRefreshing;

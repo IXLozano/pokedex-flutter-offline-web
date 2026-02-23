@@ -57,6 +57,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
           return switch (state) {
             PokemonListInitial() => const SizedBox.shrink(),
             PokemonListLoading() => const Center(child: CircularProgressIndicator()),
+            PokemonListEmpty() => _EmptyListView(onRetry: () => context.read<PokemonListCubit>().fetchInitial()),
             PokemonListError(:final message) => Center(child: Text(message)),
             PokemonListData(:final pokemons, :final isRefreshing) => _ListView(
               scrollController: _scrollController,
@@ -66,6 +67,28 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
             ),
           };
         },
+      ),
+    );
+  }
+}
+
+class _EmptyListView extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _EmptyListView({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.inbox_outlined, size: 64),
+          const SizedBox(height: 12),
+          const Text('No pokemon available'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
       ),
     );
   }

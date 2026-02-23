@@ -28,7 +28,7 @@ class PokemonListCubit extends Cubit<PokemonListState> {
       final initialPage = await getPokemonPage.once(limit: _limit, offset: 0);
 
       if (initialPage.isEmpty) {
-        emit(PokemonListError(message: 'No cached data and no network response.'));
+        emit(PokemonListEmpty());
         return;
       }
 
