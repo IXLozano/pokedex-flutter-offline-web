@@ -33,7 +33,9 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   /// Builds the detail UI according to the current cubit state.
   @override
   Widget build(BuildContext context) {
+    final canGoBack = Navigator.of(context).canPop();
     return Scaffold(
+      appBar: canGoBack ? AppBar(title: const Text('Pokemon Detail')) : null,
       body: BlocBuilder<PokemonDetailCubit, PokemonDetailState>(
         builder: (context, state) {
           return switch (state) {
