@@ -150,7 +150,14 @@ Feature-first + Clean Architecture layers:
 ## Testing
 
 ### What is currently tested
-- (Fill with what is actually present in repo. If none, keep explicit.)
+1. `PokemonListCubit`
+   - `fetchNextPage` keeps previous cached data when pagination fails
+   - Emits UI event/snackbar message for non-blocking pagination errors
+   - Avoids replacing the full screen with a blocking error state during pagination failures
+
+2. `PokemonRepositoryImpl`
+   - `getPokemonPageOnce` on cache miss: fetches remote, persists to local, returns expected page data
+   - `watchPokemonDetail` on cache miss + remote failure: propagates mapped failure correctly
 
 ### If limited by time, first tests to add (priority)
 1. `PokemonListCubit`
