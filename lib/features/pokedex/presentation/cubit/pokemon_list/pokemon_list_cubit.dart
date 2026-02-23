@@ -9,11 +9,16 @@ part 'pokemon_list_state.dart';
 
 class PokemonListCubit extends Cubit<PokemonListState> {
   final GetPokemonPage getPokemonPage;
+  final StreamController<String> _uiEvents = StreamController<String>.broadcast();
 
   final int _limit = 20;
+  final Duration _paginationErrorCooldown = const Duration(seconds: 4);
   bool _isFetching = false;
+  DateTime? _lastPaginationErrorAt;
 
   PokemonListCubit({required this.getPokemonPage}) : super(PokemonListInitial());
+
+  Stream<String> get uiEvents => _uiEvents.stream;
 
   Future<void> fetchInitial() {
     return _execute(() async {
@@ -57,9 +62,12 @@ class PokemonListCubit extends Cubit<PokemonListState> {
         final accumulated = [...currentState.pokemons, ...newPokemons];
 
         emit(PokemonListData(pokemons: accumulated, isRefreshing: false, hasReachedMax: hasReachedMax));
+      } on Failure catch (f) {
+        emit(currentState.copyWith(isRefreshing: false));
+        _emitPaginationError(f.message);
       } catch (_) {
         emit(currentState.copyWith(isRefreshing: false));
-        rethrow;
+        _emitPaginationError('Unexpected error while loading more pokemons.');
       } finally {
         _isFetching = false;
       }
@@ -74,5 +82,19 @@ class PokemonListCubit extends Cubit<PokemonListState> {
     } catch (f) {
       emit(PokemonListError(message: 'Unexpected error: ${f.toString()}'));
     }
+  }
+
+  void _emitPaginationError(String message) {
+    final now = DateTime.now();
+    final last = _lastPaginationErrorAt;
+    if (last != null && now.difference(last) < _paginationErrorCooldown) return;
+    _lastPaginationErrorAt = now;
+    _uiEvents.add(message);
+  }
+
+  @override
+  Future<void> close() async {
+    await _uiEvents.close();
+    return super.close();
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,12 +17,20 @@ class PokemonListScreen extends StatefulWidget {
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<String>? _uiEventsSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    context.read<PokemonListCubit>().fetchInitial();
+    final cubit = context.read<PokemonListCubit>();
+    cubit.fetchInitial();
+    _uiEventsSubscription = cubit.uiEvents.listen((message) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    });
     _scrollController.addListener(_handleController);
   }
 
@@ -32,6 +42,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
 
   @override
   void dispose() {
+    _uiEventsSubscription?.cancel();
     _scrollController.removeListener(_handleController);
     _scrollController.dispose();
     super.dispose();
