@@ -53,6 +53,16 @@ class PokedexDatabase extends _$PokedexDatabase {
     return query.get();
   }
 
+  Future<int?> getPokemonPageUpdatedAt({required int offset}) async {
+    final query = select(pokemonListCacheTable)
+      ..where((t) => t.pageOffset.equals(offset))
+      ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+      ..limit(1);
+
+    final row = await query.getSingleOrNull();
+    return row?.updatedAt;
+  }
+
   Future<void> replacePokemonPage({required int offset, required List<PokemonListCacheTableCompanion> rows}) async {
     await transaction(() async {
       await (delete(pokemonListCacheTable)..where((t) => t.pageOffset.equals(offset))).go();
@@ -69,6 +79,15 @@ class PokedexDatabase extends _$PokedexDatabase {
       ..limit(1);
 
     return query.watchSingleOrNull();
+  }
+
+  Future<int?> getPokemonDetailUpdatedAt(int id) async {
+    final query = select(pokemonDetailCacheTable)
+      ..where((t) => t.id.equals(id))
+      ..limit(1);
+
+    final row = await query.getSingleOrNull();
+    return row?.updatedAt;
   }
 
   Future<void> upsertPokemonDetail(PokemonDetailCacheTableCompanion row) {

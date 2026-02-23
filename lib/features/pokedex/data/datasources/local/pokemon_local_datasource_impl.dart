@@ -18,6 +18,9 @@ class PokemonLocalDataSourceImpl implements PokemonLocalDataSource {
   }
 
   @override
+  Future<int?> getPokemonPageUpdatedAt({required int offset}) => _db.getPokemonPageUpdatedAt(offset: offset);
+
+  @override
   Future<void> savePokemonPage({required int offset, required List<Pokemon> pokemons}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -53,6 +56,9 @@ class PokemonLocalDataSourceImpl implements PokemonLocalDataSource {
       );
     });
   }
+
+  @override
+  Future<int?> getPokemonDetailUpdatedAt(int id) => _db.getPokemonDetailUpdatedAt(id);
 
   @override
   Future<void> savePokemonDetail(PokemonDetail detail) async {
