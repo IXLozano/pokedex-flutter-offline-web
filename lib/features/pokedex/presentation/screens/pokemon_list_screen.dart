@@ -97,6 +97,7 @@ class _ListView extends StatelessWidget {
             return ListTile(
               onTap: () => widget.onPokemonTap?.call(pokemon.id),
               title: Text(pokemon.name.toUpperCase()),
+              subtitle: Text('#${pokemon.id.toString().padLeft(3, '0')}'),
               leading: SizedBox(
                 width: 50,
                 height: 50,
